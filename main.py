@@ -30,23 +30,50 @@ class WordReviewApp(QWidget):
 
     def toggle_notes(self):
         """toggle notes"""
-        pass
+        """切换显示/隐藏释义"""
+        if self.notes_label.isHidden():
+            self.notes_label.show()
+            self.show_btn.setText("隐藏释义")
+            self.show_btn.setStyleSheet("padding: 10px; font-size: 14px; background-color: #E67E22; color: white; border-radius: 5px;")
+        else:
+            self.notes_label.hide()
+            self.show_btn.setText("显示释义")
+            self.show_btn.setStyleSheet("padding: 10px; font-size: 14px; background-color: #3498DB; color: white; border-radius: 5px;")
 
     def prev_word(self):
         """previous word"""
-        pass
+        if self.words_list:
+            self.current_index = (self.current_index - 1) % len(self.words_list)
+            self.update_card()
 
     def next_word(self):
         """next word"""
-        pass
+        if self.words_list:
+            self.current_index = (self.current_index + 1) % len(self.words_list)
+            self.update_card()
 
     def update_card(self):
         """update card"""
-        pass
+        if not self.words_list:
+            self.word_label.setText("Empty Word")
+            self.notes_label.setText("")
+            self.show_btn.setEnabled(False)
+            return
+
+        current_item = self.words_list[self.current_index]
+        self.word_label.setText(current_item['word'])
+        self.notes_label.setText(current_item['notes'])
+
+        # 每次切换新单词时，隐藏释义
+        self.notes_label.hide()
+        self.show_btn.setText("显示释义")
+        self.show_btn.setStyleSheet("padding: 10px; font-size: 14px; background-color: #3498DB; color: white; border-radius: 5px;")
+
 
     def init_ui(self):
         self.setWindowTitle("我的Web Highlights单词卡")
-        self.setFixedSize(450, 350)
+        # self.setFixedSize(450, 350)
+        self.setMinimumSize(450, 350)
 
         # main layout
         main_layout = QVBoxLayout()
