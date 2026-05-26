@@ -20,7 +20,6 @@ from PyQt6.QtCore import Qt
 class WordReviewApp(QWidget):
     def __init__(self, json_path):
         super().__init__()
-        self.setWindowTitle("Review Words")
         self.json_path = json_path
 
         self.words_list = []
@@ -29,8 +28,71 @@ class WordReviewApp(QWidget):
         self.load_data()
         self.init_ui()
 
-    def init_ui(self):
+    def toggle_notes(self):
+        """toggle notes"""
         pass
+
+    def prev_word(self):
+        """previous word"""
+        pass
+
+    def next_word(self):
+        """next word"""
+        pass
+
+    def update_card(self):
+        """update card"""
+        pass
+
+    def init_ui(self):
+        self.setWindowTitle("我的Web Highlights单词卡")
+        self.setFixedSize(450, 350)
+
+        # main layout
+        main_layout = QVBoxLayout()
+        main_layout.setSpacing(20)
+
+        # 1. 单词显示区域(大字母)
+        self.word_label= QLabel()
+        self.word_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.word_label.setStyleSheet("font-size: 32px; font-weight: bold; color: #2c3e50; margin-top: 20px")
+
+        # 2. 释义,笔记显示区域
+        self.notes_label = QLabel()
+        self.notes_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.notes_label.setWordWrap(True)
+        self.notes_label.setStyleSheet("font-size: 16px; color: #7F8C8D; background-color: #F8F9F9; border-radius: 8px; padding: 10px;")
+
+        # 3. 控制按钮
+        self.show_btn = QPushButton("显示释义")
+        self.show_btn.setStyleSheet("padding: 10px; font-size: 14px; background-color: #3498DB; color: white; border-radius: 5px;")
+        self.show_btn.clicked.connect(self.toggle_notes)
+
+        # 底部翻页按钮布局
+        nav_layout = QHBoxLayout()
+        self.prev_btn = QPushButton("上一个")
+        self.next_btn = QPushButton("下一个")
+
+        btn_style = "padding: 8px; font-size: 14px; background-color: #BDC3C7; border-radius: 5px;"
+        self.prev_btn.setStyleSheet(btn_style)
+        self.next_btn.setStyleSheet(btn_style)
+
+        self.prev_btn.clicked.connect(self.prev_word)
+        self.next_btn.clicked.connect(self.next_word)
+
+        nav_layout.addWidget(self.prev_btn)
+        nav_layout.addWidget(self.next_btn)
+
+        main_layout.addWidget(self.word_label)
+        main_layout.addWidget(self.notes_label)
+        main_layout.addWidget(self.show_btn)
+        main_layout.addLayout(nav_layout)
+
+        self.setLayout(main_layout)
+
+        # 显示第一个单词
+        self.update_card()
+
 
     def load_data(self):
         """
