@@ -60,12 +60,13 @@ class AppWindow(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("智能背单词系统")
-        self.resize(900, 600)
+        # self.resize(900, 600)
+        self.setMinimumSize(900, 500)
 
         # 使用 QSplitter 实现侧边栏和主视图
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
         # 分界线
-        main_splitter.setHandleWidth(1)
+        # main_splitter.setHandleWidth(1)
 
         # 左侧导航面板
         left_panel = QWidget()
@@ -74,15 +75,15 @@ class AppWindow(QWidget):
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(12, 25, 12, 25)
 
-        logo_label = QLabel("📋 记忆客栈")
+        logo_label = QLabel("📋 Lenthew")
         logo_label.setObjectName("LogoLabel")
         left_layout.addWidget(logo_label)
 
         # 导航菜单
         self.nav_list = QListWidget()
         self.nav_list.setObjectName("NavList")
-        self.nav_list.addItem("🔥 今日复习")
-        self.nav_list.addItems(["📊 学习统计", "⚙️ 个性设置"])
+        self.nav_list.addItem("🔥 Review")
+        self.nav_list.addItems(["📊 Statistics", "⚙️ General"])
         self.nav_list.setCurrentRow(0) # 默认高亮选中第一项
         left_layout.addWidget(self.nav_list)
         self.nav_list.currentRowChanged.connect(self.switch_page)
@@ -114,7 +115,66 @@ class AppWindow(QWidget):
         window_layout.setContentsMargins(0, 0, 0, 0)  # 撑满整个窗口边缘
         window_layout.addWidget(main_splitter)
 
+        self.apply_styles()
 
+    def apply_styles(self):
+        """采用扁平化现代 UI 样式的 QSS 样式表"""
+        style_sheet = """
+            /* 全局背景与字体 */
+            QWidget {
+                font-family: "PingFang SC", "Helvetica Neue", "Arial", sans-serif;
+                background-color: #FFFFFF;
+            }
+
+            /* 左侧导航面板 */
+            QWidget#LeftPanel {
+                background-color: #F8FAFC;  /* 浅灰蓝色，区分视觉层级 */
+            }
+
+            /* 系统Logo */
+            QLabel#LogoLabel {
+                font-size: 20px;
+                font-weight: bold;
+                color: #1E293B;
+                margin-bottom: 20px;
+                padding-left: 8px;
+            }
+
+            /* 导航列表基本形态 */
+            QListWidget#NavList {
+                border: none;
+                background-color: transparent;
+            }
+
+            /* 导航列表子菜单项 */
+            QListWidget#NavList::item {
+                padding: 12px 16px;
+                font-size: 14px;
+                color: #475569;
+                border-radius: 6px;
+                margin-bottom: 6px;
+            }
+
+            /* 鼠标悬停子菜单 */
+            QListWidget#NavList::item:hover {
+                background-color: #E2E8F0;
+                color: #0F172A;
+            }
+
+            /* 被激活/选中的子菜单 */
+            QListWidget#NavList::item:selected {
+                background-color: #3B82F6; /* 现代高亮蓝 */
+                color: #FFFFFF;
+                font-weight: bold;
+            }
+
+            /* 右侧内容堆栈区边界线 */
+            QStackedWidget#RightStack {
+                background-color: #FFFFFF;
+                border-left: 1px solid #E2E8F0;
+            }
+        """
+        self.setStyleSheet(style_sheet)
 
 
 
