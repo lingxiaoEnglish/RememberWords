@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout,
                              QHBoxLayout, QLabel, QListWidget,
                              QStackedWidget, QSplitter)
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QGuiApplication
 
 class WordReviewPage(QWidget):
     def __init__(self):
@@ -57,6 +58,14 @@ class AppWindow(QWidget):
         if index < self.right_stack.count():
             self.right_stack.setCurrentIndex(index)
 
+    def init_theme_listener(self):
+        """主题切换监听"""
+        style_hints = QGuiApplication.styleHints()
+        style_hints.colorSchemeChanged.connect(self.on_system_theme_changed)
+
+    def on_system_theme_changed(self, scheme):
+        """当系统切主题时的响应"""
+        self.apply_auto_theme()
 
     def init_ui(self):
         self.setWindowTitle("智能背单词系统")
@@ -115,64 +124,93 @@ class AppWindow(QWidget):
         window_layout.setContentsMargins(0, 0, 0, 0)  # 撑满整个窗口边缘
         window_layout.addWidget(main_splitter)
 
-        self.apply_styles()
+        self.apply_auto_theme()
 
-    def apply_styles(self):
-        """采用扁平化现代 UI 样式的 QSS 样式表"""
-        style_sheet = """
-            /* 全局背景与字体 */
-            QWidget {
-                font-family: "PingFang SC", "Helvetica Neue", "Arial", sans-serif;
-                background-color: #FFFFFF;
+    def apply_auto_theme(self):
+        """核心修复：通过状态值判断，避免直接依赖 QColorScheme 类"""
+        style_hints = QGuiApplication.styleHints()
+
+        # Qt 内部机制中:
+        # colorScheme().value 值为 2 或者通过强转枚举名包含 'Dark' 均代表暗黑模式
+        # 这种写法完美避开了老版本 PyQt6 没有 QColorScheme 的问题
+        current_scheme_str = str(style_hints.colorScheme())
+        is_dark = "Dark" in current_scheme_str or getattr(style_hints.colorScheme(), "value", 0) == 2
+
+        if is_dark:
+            # 暗黑模式色彩变量
+            colors = {
+                "window_bg": "#121212",
+                "left_panel_bg": "#1E1E1E",
+                "right_stack_bg": "#121212",
+                "border_color": "#2D2D2D",
+                "text_main": "#E0E0E0",
+                "text_muted": "#A0A0A0",
+                "nav_item_hover": "#2C2C2C",
+                "nav_item_active": "#3B82F6",
+            }
+        else:
+            # 浅色模式色彩变量
+            colors = {
+                "window_bg": "#FFFFFF",
+                "left_panel_bg": "#F8FAFC",
+                "right_stack_bg": "#FFFFFF",
+                "border_color": "#E2E8F0",
+                "text_main": "#1E293B",
+                "text_muted": "#64748B",
+                "nav_item_hover": "#E2E8F0",
+                "nav_item_active": "#3B82F6",
             }
 
-            /* 左侧导航面板 */
-            QWidget#LeftPanel {
-                background-color: #F8FAFC;  /* 浅灰蓝色，区分视觉层级 */
-            }
-
-            /* 系统Logo */
-            QLabel#LogoLabel {
+        # 动态组装并渲染全局样式
+        style_sheet = f"""
+            QWidget {{
+                font-family: "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+                background-color: {colors["window_bg"]};
+                color: {colors["text_main"]};
+            }}
+            QWidget#LeftPanel {{
+                background-color: {colors["left_panel_bg"]};
+            }}
+            QLabel#LogoLabel {{
                 font-size: 20px;
                 font-weight: bold;
-                color: #1E293B;
+                color: {colors["text_main"]};
                 margin-bottom: 20px;
                 padding-left: 8px;
-            }
-
-            /* 导航列表基本形态 */
-            QListWidget#NavList {
+                background-color: transparent;
+            }}
+            QListWidget#NavList {{
                 border: none;
                 background-color: transparent;
-            }
-
-            /* 导航列表子菜单项 */
-            QListWidget#NavList::item {
+            }}
+            QListWidget#NavList::item {{
                 padding: 12px 16px;
                 font-size: 14px;
-                color: #475569;
+                color: {colors["text_muted"]};
                 border-radius: 6px;
                 margin-bottom: 6px;
-            }
-
-            /* 鼠标悬停子菜单 */
-            QListWidget#NavList::item:hover {
-                background-color: #E2E8F0;
-                color: #0F172A;
-            }
-
-            /* 被激活/选中的子菜单 */
-            QListWidget#NavList::item:selected {
-                background-color: #3B82F6; /* 现代高亮蓝 */
+                background-color: transparent;
+            }}
+            QListWidget#NavList::item:hover {{
+                background-color: {colors["nav_item_hover"]};
+                color: {colors["text_main"]};
+            }}
+            QListWidget#NavList::item:selected {{
+                background-color: {colors["nav_item_active"]};
                 color: #FFFFFF;
                 font-weight: bold;
-            }
-
-            /* 右侧内容堆栈区边界线 */
-            QStackedWidget#RightStack {
-                background-color: #FFFFFF;
-                border-left: 1px solid #E2E8F0;
-            }
+            }}
+            QStackedWidget#RightStack {{
+                background-color: {colors["right_stack_bg"]};
+                border-left: 1px solid {colors["border_color"]};
+            }}
+            QStackedWidget#RightStack QLabel {{
+                color: {colors["text_muted"]};
+                background-color: transparent;
+            }}
+            QSplitter::handle {{
+                background-color: {colors["border_color"]};
+            }}
         """
         self.setStyleSheet(style_sheet)
 
