@@ -15,32 +15,15 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QGuiApplication
 
-class WordReviewPage(QWidget):
-    def __init__(self):
-        super().__init__()
-        layout = QVBoxLayout(self)
-        label = QLabel("🔥 今日复习 视图\n\n[子视图待开发：未来在此放置单词卡片、封面图、控制按钮等]")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setStyleSheet("font-size: 16px; color: #7F8C8D; line-height: 1.5;")
-        layout.addWidget(label)
 
-class StatisticsPage(QWidget):
-    def __init__(self):
-        super().__init__()
-        layout = QVBoxLayout(self)
-        label = QLabel("📊 学习统计 视图\n\n[子视图待开发：未来在此放置饼图、柱状图或打卡日历]")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setStyleSheet("font-size: 16px; color: #7F8C8D;")
-        layout.addWidget(label)
 
-class SettingsPage(QWidget):
-    def __init__(self):
-        super().__init__()
-        layout = QVBoxLayout(self)
-        label = QLabel("⚙️ 设置 视图\n\n[子视图待开发：未来在此放置设置项]")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setStyleSheet("font-size: 16px; color: #7F8C8D;")
-        layout.addWidget(label)
+# 导入自定义解耦模块
+from config.styles import generate_qss
+from views.review_page import WordReviewPage
+from views.stats_page import StatisticsPage
+from views.settings_page import SettingsPage
+
+
 
 
 class AppWindow(QWidget):
@@ -127,92 +110,7 @@ class AppWindow(QWidget):
         self.apply_auto_theme()
 
     def apply_auto_theme(self):
-        """核心修复：通过状态值判断，避免直接依赖 QColorScheme 类"""
-        style_hints = QGuiApplication.styleHints()
-
-        # Qt 内部机制中:
-        # colorScheme().value 值为 2 或者通过强转枚举名包含 'Dark' 均代表暗黑模式
-        # 这种写法完美避开了老版本 PyQt6 没有 QColorScheme 的问题
-        current_scheme_str = str(style_hints.colorScheme())
-        is_dark = "Dark" in current_scheme_str or getattr(style_hints.colorScheme(), "value", 0) == 2
-
-        if is_dark:
-            # 暗黑模式色彩变量
-            colors = {
-                "window_bg": "#121212",
-                "left_panel_bg": "#1E1E1E",
-                "right_stack_bg": "#121212",
-                "border_color": "#2D2D2D",
-                "text_main": "#E0E0E0",
-                "text_muted": "#A0A0A0",
-                "nav_item_hover": "#2C2C2C",
-                "nav_item_active": "#3B82F6",
-            }
-        else:
-            # 浅色模式色彩变量
-            colors = {
-                "window_bg": "#FFFFFF",
-                "left_panel_bg": "#F8FAFC",
-                "right_stack_bg": "#FFFFFF",
-                "border_color": "#E2E8F0",
-                "text_main": "#1E293B",
-                "text_muted": "#64748B",
-                "nav_item_hover": "#E2E8F0",
-                "nav_item_active": "#3B82F6",
-            }
-
-        # 动态组装并渲染全局样式
-        style_sheet = f"""
-            QWidget {{
-                font-family: "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
-                background-color: {colors["window_bg"]};
-                color: {colors["text_main"]};
-            }}
-            QWidget#LeftPanel {{
-                background-color: {colors["left_panel_bg"]};
-            }}
-            QLabel#LogoLabel {{
-                font-size: 20px;
-                font-weight: bold;
-                color: {colors["text_main"]};
-                margin-bottom: 20px;
-                padding-left: 8px;
-                background-color: transparent;
-            }}
-            QListWidget#NavList {{
-                border: none;
-                background-color: transparent;
-            }}
-            QListWidget#NavList::item {{
-                padding: 12px 16px;
-                font-size: 14px;
-                color: {colors["text_muted"]};
-                border-radius: 6px;
-                margin-bottom: 6px;
-                background-color: transparent;
-            }}
-            QListWidget#NavList::item:hover {{
-                background-color: {colors["nav_item_hover"]};
-                color: {colors["text_main"]};
-            }}
-            QListWidget#NavList::item:selected {{
-                background-color: {colors["nav_item_active"]};
-                color: #FFFFFF;
-                font-weight: bold;
-            }}
-            QStackedWidget#RightStack {{
-                background-color: {colors["right_stack_bg"]};
-                border-left: 1px solid {colors["border_color"]};
-            }}
-            QStackedWidget#RightStack QLabel {{
-                color: {colors["text_muted"]};
-                background-color: transparent;
-            }}
-            QSplitter::handle {{
-                background-color: {colors["border_color"]};
-            }}
-        """
-        self.setStyleSheet(style_sheet)
+        self.setStyleSheet(generate_qss())
 
 
 
