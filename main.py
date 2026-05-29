@@ -165,7 +165,7 @@ class WordReviewApp(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    json_path = "webhighlights-backup-20260425-162910.json"
+    json_path = "webhighlights-backup-20260529-135026_formatter.json"
 
     window = WordReviewApp(json_path)
     window.show()
