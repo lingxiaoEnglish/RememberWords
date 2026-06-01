@@ -30,5 +30,5 @@ class Page(CommonModel):
     language: str = ""
     permission: str = ""
     isStarred: bool = False
-    meta: PageMeta = None
+    meta: Optional[PageMeta] = None
 
