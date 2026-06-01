@@ -122,7 +122,8 @@ class AppWindow(QWidget):
         self.apply_auto_theme()
 
     def apply_auto_theme(self):
-        self.setStyleSheet(generate_qss())
+        qss_str = generate_qss()
+        self.setStyleSheet(qss_str)
 
 
 
