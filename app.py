@@ -23,6 +23,8 @@ from views.review_page import WordReviewPage
 from views.stats_page import StatisticsPage
 from views.settings_page import SettingsPage
 
+from services.data_service import DataService
+
 
 
 
@@ -117,6 +119,7 @@ class AppWindow(QWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = AppWindow()
+    DataService.load_marks_data("webhighlights-backup-20260529-135026.json")
     window.show()
     sys.exit(app.exec())
 

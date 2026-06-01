@@ -1,0 +1,88 @@
+# -*- coding: utf-8 -*-
+"""
+@Project : RememberWords
+@File    : data_service
+@Author  : lingxiao
+@Date    : 2026-06-01 11:18
+@License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
+"""
+
+# ... existing code ...
+import json
+import os
+from typing import List, ClassVar, Any, Dict, Optional
+
+from models.marks_model import *
+
+class DataService:
+
+    # RAW_DATA: ClassVar[dict[str, Any]] = None
+    RAW_DATA: ClassVar[Optional[Dict[str, Any]]] = None
+
+    @staticmethod
+    def load_marks_data(json_path: str):
+        if not DataService.load_marks_from_json__(json_path):
+            print("Fail to load marks data")
+            return
+
+        marks = DataService.RAW_DATA.get("marks", [])
+        mark_datas = []
+        for index, item in enumerate(marks):
+
+            mark_ele = Marks(createdAt=item['createdAt'],
+                             updatedAt=item['updatedAt'],
+                             url=item['url'],
+                             tags=item["tags"],
+                             text=item["text"],
+                             type=item["type"],
+                             mediaType=item["mediaType"],
+                             color=item["color"],
+                             highlightSource=HighlightSource(
+                                 startMeta=Meta(
+                                     parentTagName=item['highlightSource']['startMeta']['parentTagName'],
+                                     parentIndex=item['highlightSource']['startMeta']['parentIndex'],
+                                     textOffset=item['highlightSource']['startMeta']['textOffset']
+                                 ),
+                                 endMeta=Meta(
+                                     parentTagName=item['highlightSource']['endMeta']['parentTagName'],
+                                     parentIndex=item['highlightSource']['endMeta']['parentIndex'],
+                                     textOffset=item['highlightSource']['endMeta']['textOffset']
+                                 ),
+                                 text=item['highlightSource']["text"],
+                                 id=item['highlightSource']["id"],
+                             ),
+                             domElementOffsetTop=item["domElementOffsetTop"],
+                             domElementOffsetLeft=item["domElementOffsetLeft"],
+                             _bookmark=item["_bookmark"],
+                             notes=item.get("notes", ""),
+                             modifiedAt=item.get("modifiedAt", 0),
+                             _id=item["_id"],
+                             _objectStore=item["_objectStore"],
+                             _user=item["_user"]
+                             )
+            mark_datas.append(mark_ele)
+
+        print(len(mark_datas))
+        print("-----")
+
+
+    @staticmethod
+    def load_marks_from_json__(json_path: str):
+        """
+        load raw data via json path
+        :param json_path:
+        :return:
+        """
+
+        if DataService.RAW_DATA:
+            return True
+
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                DataService.RAW_DATA = data
+                return True
+        except Exception as e:
+            DataService.RAW_DATA = None
+            print(f"Failed to load data: {e}")
+            return False
