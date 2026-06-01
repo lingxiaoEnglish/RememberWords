@@ -11,42 +11,22 @@ from PyQt6.QtWidgets import (QWidget, QFrame, QVBoxLayout, QLabel, QHBoxLayout)
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply
 from PyQt6.QtGui import QImage, QPixmap
+from models.page_models import *
 
 class WordCard(QFrame):
-    def __init__(self,
-                 img_url=None,
-                 title=None,
-                 highlights=0,
-                 notes=0,
-                 source_url="",
-                 create_time=None,
-                 network_manager=None):
+    def __init__(self, page: Page, network_manager=None):
         """
         init word card widget
-        :param img_url: conver img url source
-        :param title: title label
-        :param highlights: the num of highlights on the source_url
-        :param notes: the num of notes on the source_url
-        :param source_url: the source url
-        :param create_time: create time
-        :param network_manager: net work
+        :param page: 数据源
         """
         super().__init__()
         self.setObjectName("WordCard")
-        self.img_url = img_url
-        self.title = title
-        self.highlights = highlights
-        self.notes = notes
-        self.source_url = source_url
-        self.create_time = create_time
+        self.page = page
         self.network_manager = network_manager
-
         ######
         self.card_layout=None
         self.cover_img=None
-
         self.init_ui()
-
         self.start_image_download()
 
     def start_image_download(self):
@@ -54,7 +34,7 @@ class WordCard(QFrame):
         start image download
         :return:
         """
-        url = QUrl(self.img_url)
+        url = QUrl(self.page.meta.image.url)
         request = QNetworkRequest(url)
         # 发起异步网络请求
         self.reply = self.network_manager.get(request)
@@ -106,28 +86,28 @@ class WordCard(QFrame):
         text_layout.setSpacing(8)
 
         # title
-        title_label = QLabel(self.title)
+        title_label = QLabel(self.page.title)
         title_label.setObjectName("CardTitle")
         title_label.setWordWrap(True)
         text_layout.addWidget(title_label)
 
         # highlights and notes
         highlight_notes_layout = QHBoxLayout()
-        hightlight_label = QLabel(f"Highlights: {self.highlights}")
+        hightlight_label = QLabel(f"Highlights: {10}")
         hightlight_label.setObjectName("CardHighlight")
         highlight_notes_layout.addWidget(hightlight_label)
 
-        notes_label = QLabel(f"Notes: {self.notes}")
+        notes_label = QLabel(f"Notes: {20}")
         notes_label.setObjectName("CardNotes")
         highlight_notes_layout.addWidget(notes_label)
 
         text_layout.addLayout(highlight_notes_layout)
 
         source_time_layout = QHBoxLayout()
-        source_label = QLabel(f"Source: {self.source_url}")
+        source_label = QLabel(self.page.origin)
         source_label.setObjectName("CardSource")
         source_time_layout.addWidget(source_label)
-        time_label = QLabel(f"Time: {self.create_time}")
+        time_label = QLabel(f"{self.page.created_date}")
         time_label.setObjectName("CardTime")
         source_time_layout.addWidget(time_label)
 

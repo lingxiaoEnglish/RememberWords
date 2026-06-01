@@ -11,8 +11,12 @@
 import json
 import os
 from typing import List, ClassVar, Any, Dict, Optional
+from warnings import deprecated
 
-from models.marks_model import *
+from models.marks_model_deprecated import *
+from models.mark_models import *
+
+from models.page_models import *
 
 class DataService:
 
@@ -20,8 +24,61 @@ class DataService:
     RAW_DATA: ClassVar[Optional[Dict[str, Any]]] = None
 
     @staticmethod
-    def load_marks_data(json_path: str):
-        if not DataService.load_marks_from_json__(json_path):
+    def load_pages_from_json(json_path: str) -> List[Page]:
+        """
+        load raw data via json path
+        :param json_path:
+        :return:
+        """
+        if not DataService.load_raw_data_from_json__(json_path):
+            print("Fail to load marks data")
+            return []
+        bookmarks = DataService.RAW_DATA.get("bookmarks", [])
+        bookmarks_datas = []
+        for index, item in enumerate(bookmarks):
+            mark = Page.model_validate(item)
+            bookmarks_datas.append(mark)
+
+        # 根据createAt降序
+        bookmarks_datas.sort(key=lambda x: x.createdAt, reverse=True)
+        print(len(bookmarks_datas))
+        print("-----")
+        return bookmarks_datas
+
+
+    @staticmethod
+    def load_marks_from_json(json_path: str) -> List[Mark]:
+        """
+        load raw data via json path
+        :param json_path:
+        :return: marks data sources
+        """
+
+        if not DataService.load_raw_data_from_json__(json_path):
+            print("Fail to load marks data")
+            return []
+
+        marks = DataService.RAW_DATA.get("marks", [])
+        mark_datas = []
+        for index, item in enumerate(marks):
+            mark = Mark.model_validate(item)
+            mark_datas.append(mark)
+
+        print(len(mark_datas))
+        print("-----")
+        return mark_datas
+
+
+
+    @staticmethod
+    @deprecated("load_marks_from_json instead")
+    def load_marks_data_deprecated(json_path: str):
+        """
+        deprecated function. using load_marks_from_json instead
+        :param json_path:
+        :return:
+        """
+        if not DataService.load_raw_data_from_json__(json_path):
             print("Fail to load marks data")
             return
 
@@ -67,11 +124,11 @@ class DataService:
 
 
     @staticmethod
-    def load_marks_from_json__(json_path: str):
+    def load_raw_data_from_json__(json_path: str):
         """
         load raw data via json path
         :param json_path:
-        :return:
+        :return: True: load data success, otherwise, fail
         """
 
         if DataService.RAW_DATA:

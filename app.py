@@ -25,18 +25,28 @@ from views.settings_page import SettingsPage
 
 from services.data_service import DataService
 
-
-
-
 class AppWindow(QWidget):
-    def __init__(self):
+    def __init__(self, json_path):
         super().__init__()
         self.nav_list = None
         self.right_stack = None
         self.page_review = None
         self.page_stats = None
         self.page_settings = None
+        self.json_path = json_path
+        # pages 数据源
+        self.pages = None
+        # total marks 数据源
+        self.marks = None
+
+
         self.init_ui()
+        self.load_data()
+
+    def load_data(self):
+        self.marks = DataService.load_marks_from_json(self.json_path)
+        self.pages = DataService.load_pages_from_json(self.json_path)
+        self.page_review.reload_cards(self.pages, self.marks)
 
     def switch_page(self, index):
         """核心路由控制：当左侧点击了第几项，右侧就切到对应的子视图"""
@@ -118,8 +128,7 @@ class AppWindow(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = AppWindow()
-    DataService.load_marks_data("webhighlights-backup-20260529-135026.json")
+    window = AppWindow(json_path="webhighlights-backup-20260529-135026.json")
     window.show()
     sys.exit(app.exec())
 
