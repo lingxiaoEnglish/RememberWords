@@ -104,4 +104,17 @@ def generate_qss() -> str:
         QSplitter::handle {{
             background-color: {colors["border_color"]};
         }}
+        /* 核心单张卡片容器 */
+        QFrame#WordCard {{
+            background-color: {"#1E1E1E" if colors["window_bg"]=="#121212" else "#FFFFFF"};
+            border: 1px solid {colors["border_color"]};
+            border-radius: 12px;
+        }}
+        
+        /* 封面图裁剪标签：使其与上方圆角对齐 */
+        QLabel#CardCover {{
+            border-top-left-radius: 11px;
+            border-top-right-radius: 11px;
+            background-color: {"#252525" if colors["window_bg"]=="#121212" else "#F1F5F9"};
+        }}
     """

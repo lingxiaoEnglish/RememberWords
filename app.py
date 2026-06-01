@@ -51,7 +51,7 @@ class AppWindow(QWidget):
         self.apply_auto_theme()
 
     def init_ui(self):
-        self.setWindowTitle("智能背单词系统")
+        self.setWindowTitle("ZhiZhi")
         # self.resize(900, 600)
         self.setMinimumSize(900, 500)
 
