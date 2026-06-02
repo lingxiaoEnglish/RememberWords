@@ -39,10 +39,10 @@ def get_theme_colors() -> dict:
 def get_appearance_mode__() -> bool:
     """获取当前系统外观模式，返回布尔值"""
     style_hints = QGuiApplication.styleHints()
-    print(f'style_hints=={style_hints}')
+    # print(f'style_hints=={style_hints}')
     # 结合底层 Scheme 字符串与调色板物理亮度实现双保险检测
     current_scheme_str = str(style_hints.colorScheme())
-    print(f'current_scheme_str=={current_scheme_str}')
+    # print(f'current_scheme_str=={current_scheme_str}')
     is_dark_scheme = "Dark" in current_scheme_str or getattr(style_hints.colorScheme(), "value", 0) == 2
 
     window_color = QApplication.palette().window().color()

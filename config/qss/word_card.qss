@@ -10,12 +10,13 @@ QLabel#CardCover {
     border-top-left-radius: 11px;
     border-top-right-radius: 11px;
     background-color: '{{cover_bg}}';
+    qproperty-alignment: 'AlignCenter'; /*设置居中对齐*/
 }
 
 /* 补充：单词卡片内部的文本精细微调（可选，利于未来单独调卡片字号） */
-QLabel#CardTag {
-    font-size: 11px;
-    color: #3B82F6;
+QLabel#CardTitle {
+    font-size: 13px;
+    color: '{{text_main}}';
     font-weight: bold;
     background: transparent;
 }

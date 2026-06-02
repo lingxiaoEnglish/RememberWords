@@ -20,7 +20,7 @@ from PyQt6.QtGui import QGuiApplication
 # 导入自定义解耦模块
 # from config.styles import generate_qss #这个是选择器文本的样式
 from config.styles_qss import generate_qss
-from config.styles_qss import load_qss
+from config.style_manager import StyleManager
 from views.review_page import WordReviewPage
 from views.stats_page import StatisticsPage
 from views.settings_page import SettingsPage
@@ -126,8 +126,8 @@ class AppWindow(QWidget):
 
     def apply_auto_theme(self):
         # qss_str = generate_qss()
-        qss_str = load_qss()
-        print(qss_str)
+        qss_str = StyleManager.load_global_qss()
+
         self.setStyleSheet(qss_str)
 
 

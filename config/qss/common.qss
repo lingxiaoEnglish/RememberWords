@@ -21,5 +21,3 @@ QLabel#LogoLabel {
     padding-left: 8px;
     background-color: transparent;
 }
-
-

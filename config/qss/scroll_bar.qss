@@ -1,0 +1,104 @@
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 8px;
+    margin: 0px 2px 0px 2px;
+/*    transition: with 0.2s ease-in-out;*/
+}
+
+/* 鼠标悬停在滚动条区域时，稍微加宽，方便用户抓取 */
+QScrollBar:vertical:hover {
+    width: 10px;
+}
+
+/* ==================== 滚动条滑块（Thumb） ==================== */
+QScrollBar::handle:vertical {
+    /* 使用微弱、不刺眼的半透明浅灰色，契合现代 UI 调性 */
+    background-color: rgba(0, 0, 0, 0.2);
+    min-height: 30px;                     /* 避免内容极多时滑块缩得太小 */
+    border-radius: 2px;                   /* 完美圆角，呈现胶囊状 */
+}
+
+/* 鼠标悬停在滑块上，或者正在拖拽时，滑块颜色加深 */
+QScrollBar::handle:vertical:hover,
+QScrollBar::handle:vertical:pressed {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 5px;
+}
+
+/* ==================== 隐藏两端的上下箭头 ==================== */
+/* macOS 标准是没有两端丑陋的箭头的，直接将其高度和宽度设为 0 隐藏 */
+QScrollBar::sub-line:vertical {
+    height: 0px;
+    width: 0px;
+    background: transparent;
+}
+
+QScrollBar::add-line:vertical {
+    height: 0px;
+    width: 0px;
+    background: transparent;
+}
+
+/* 兜底清理：防止极端情况下残留空白边框 */
+QScrollBar::sub-page:vertical, QScrollBar::add-page:vertical {
+    background: transparent;
+}
+
+
+/* ================================================================= */
+/* 🎛️ 横向滚动条 (macOS 风格极简悬浮)                                  */
+/* ================================================================= */
+
+/* 1. 滚动条整体容器 */
+QScrollBar:horizontal {
+    border: none;
+    background: transparent;     /* 背景完全透明，实现悬浮感 */
+    height: 4px;                 /* 默认状态较细，符合 macOS 规范 */
+    margin: 0px 0px 0px 0px;     /* 移除外边距 */
+}
+
+/* 鼠标悬停在滚动条区域时，稍微加宽，方便用户抓取 */
+QScrollBar:horizontal:hover {
+    height: 10px;
+}
+
+/* 2. 滚动条滑块 (Thumb) */
+QScrollBar::handle:horizontal {
+    background-color: rgba(0, 0, 0, 0.2);  /* 默认浅灰色半透明 (浅色模式) */
+    /* 如果你的应用默认是深色模式，可以使用下面这行： */
+    /* background-color: rgba(255, 255, 255, 0.25); */
+
+    min-width: 30px;             /* 限制滑块最小宽度 */
+    border-radius: 2px;          /* 完美圆角 */
+}
+
+/* 鼠标悬停在滑块上时变深 */
+QScrollBar::handle:horizontal:hover {
+    background-color: rgba(0, 0, 0, 0.4);
+    /* 深色模式对应： background-color: rgba(255, 255, 255, 0.45); */
+}
+
+/* 鼠标按下并拖拽滑块时 */
+QScrollBar::handle:horizontal:pressed {
+    background-color: rgba(0, 0, 0, 0.5);
+    /* 深色模式对应： background-color: rgba(255, 255, 255, 0.6); */
+}
+
+/* 3. 隐藏左箭头和右箭头 (macOS 滚动条没有两端的丑陋箭头) */
+QScrollBar::add-line:horizontal {
+    border: none;
+    background: transparent;
+    width: 0px;
+}
+
+QScrollBar::sub-line:horizontal {
+    border: none;
+    background: transparent;
+    width: 0px;
+}
+
+/* 4. 隐藏滑块未覆盖部分的背景槽 (Track) */
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: transparent;
+}
