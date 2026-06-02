@@ -7,7 +7,6 @@
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
 import os
-import sys
 from warnings import deprecated
 from config.theme import FONT_FAMILY, get_theme_colors
 from lxUtils.lxUtil import get_resource_path

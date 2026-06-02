@@ -14,7 +14,7 @@ import platform
 # 跨平台安全字体族：优先匹配 Mac/iOS 原生高清字体，Windows 自动降级匹配微软雅黑
 # FONT_FAMILY = '"Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif'
 
-def get_platform_font__():
+def _get_platform_font():
     """根据操作系统动态返回唯一存在的标准高清晰度字体"""
     sys_plat = platform.system()
     if sys_plat == "Windows":
@@ -24,19 +24,19 @@ def get_platform_font__():
     else:
         return "sans-serif"
 
-FONT_FAMILY = get_platform_font__()
+FONT_FAMILY = _get_platform_font()
 
 def get_theme_colors() -> dict:
     """动态分析底层操作系统调色板，返回自适应黑白双色变量字典"""
-    is_dard_mode = get_appearance_mode__()
+    is_dard_mode = _get_appearance_mode()
     if is_dard_mode:
         # === 暗黑模式核心色值 ===
-        return get_dark_model_colors__()
+        return _get_dark_model_colors()
     else:
         # === 浅色模式核心色值 ===
-        return get_light_model_colors__()
+        return _get_light_model_colors()
 
-def get_appearance_mode__() -> bool:
+def _get_appearance_mode() -> bool:
     """获取当前系统外观模式，返回布尔值"""
     style_hints = QGuiApplication.styleHints()
     # print(f'style_hints=={style_hints}')
@@ -54,7 +54,7 @@ def get_appearance_mode__() -> bool:
         return False
 
 
-def get_dark_model_colors__() -> dict:
+def _get_dark_model_colors() -> dict:
     """get dark model colors"""
     return {
         "window_bg": "#121212",
@@ -70,7 +70,7 @@ def get_dark_model_colors__() -> dict:
     }
 
 
-def get_light_model_colors__() -> dict:
+def _get_light_model_colors() -> dict:
     """get light model colors"""
     return {
         "window_bg": "#FFFFFF",
