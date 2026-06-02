@@ -6,6 +6,15 @@ QFrame#WordCard {
     border-radius: 12px;
 }
 
+QWidget#TextContainer {
+    /* 格式：左上、右上、右下、左下 */
+    /* 核心点：上方保持直角(0px)衔接，下方给 12px 圆角匹配父级 */
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+/*    border: 1px solid '{{border_color}}';*/
+/*    background-color: #FF0000;*/
+}
+
 QLabel#CardCover {
     border-top-left-radius: 11px;
     border-top-right-radius: 11px;

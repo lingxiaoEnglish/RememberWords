@@ -39,29 +39,15 @@ class WordCard(QFrame):
         start image download
         :return:
         """
-        url = QUrl(self.page.meta.image.url)
-        request = QNetworkRequest(url)
-        # 发起异步网络请求
-        self.reply = self.network_manager.get(request)
-        self.reply.finished.connect(self.on_image_downloaded)
+        # 1. 绑定信号：图片加载完成时，触发自定义的方法
+        self.cover_img.load_finished.connect(self.on_cover_load_finished)
+        self.cover_img.load_from_url(self.page.meta.image.url, self.network_manager)
 
-    def on_image_downloaded(self):
-        if self.reply and self.reply.error() == QNetworkReply.NetworkError.NoError:
-            image_data = self.reply.readAll()
-            image = QImage()
-            if image.loadFromData(image_data):
-                # 缓存原始 Pixmap
-                self.raw_pixmap = QPixmap.fromImage(image)
-                # self.update_cover_image()
-                self.cover_img.setPixmap(self.raw_pixmap)
-            else:
-                print("Failed to load image.")
-        else:
-            print("Error:", self.reply.errorString())
-
-        if self.reply:
-            self.reply.deleteLater()
-            self.reply = None
+    def on_cover_load_finished(self, success: bool):
+        """
+        当图片下载结束时，PyQt 会自动调用这个方法，并把 成功(True)/失败(False) 传进来
+        """
+        pass
 
     def init_ui(self):
         self.setFixedWidth(240)
@@ -80,6 +66,7 @@ class WordCard(QFrame):
 
         # text container
         text_container = QWidget()
+        text_container.setObjectName("TextContainer")
         text_layout = QVBoxLayout(text_container)
         text_layout.setContentsMargins(10, 0, 10, 0)
         text_layout.setSpacing(8)

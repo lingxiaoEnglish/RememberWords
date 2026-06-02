@@ -6,11 +6,19 @@
 @Date    : 2026-06-02 15:42
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
-from PyQt6.QtGui import QPixmap, QPainter, QPainterPath
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QImage
+from PyQt6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
+from PyQt6.QtWidgets import QWidget, QLabel
+from PyQt6.QtCore import Qt, pyqtSignal, QUrl
 
-class LXImageWidget(QWidget):
+
+class LXImageWidget(QLabel):
+    """
+    LXImageWidget: 带圆角的图片控件
+    """
+    load_finished = pyqtSignal(bool)
+
+
     def __init__(self, radius=None):
         """
         :param radius: 圆角半径,可以是以下几种格式:
@@ -24,6 +32,50 @@ class LXImageWidget(QWidget):
         self.radii = self._parse_radius(radius)
         # 激活背景色，保证没有图片下载成功前，QSS 中的背景色(cover_bg)能正常渲染占位
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+
+        self.replay = None
+        self.raw_pixmap = None  # 缓存原始图片，用于后续缩放或重绘
+        self.network_manager = None
+
+    def load_from_url(self, url_str:str, network_manager: QNetworkAccessManager=None):
+        """
+        load 图片，并自动渲染
+        """
+        if not url_str:
+            return
+        self.network_manager = network_manager or QNetworkAccessManager(self)
+
+        if self.replay:
+            self.replay.disconnect()
+            self.replay.abort()
+            self.replay = None
+
+        url = QUrl(url_str)
+        request = QNetworkRequest(url)
+        self.reply = self.network_manager.get(request)
+        self.reply.finished.connect(self._on_download_finished)
+
+    def _on_download_finished(self):
+        success = False
+        if self.reply and self.reply.error() == QNetworkReply.NetworkError.NoError:
+            image_data = self.reply.readAll()
+            image = QImage()
+            if image.loadFromData(image_data):
+                self.raw_pixmap = QPixmap.fromImage(image)
+                # 直接渲染
+                self.setPixmap(self.raw_pixmap)
+                success = True
+            else:
+                print(f"[LXImageWidget] Failed to load image data from {self.reply.url().toString()}")
+        else:
+            if self.reply:
+                print(f"[LXImageWidget] Error downloading: {self.reply.errorString()}")
+
+        if self.reply:
+            self.reply.deleteLater()
+            self.reply = None
+
+        self.load_finished.emit(success)
 
     def _parse_radius(self, radius):
         if radius is None or radius == 0:
