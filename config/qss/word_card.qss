@@ -1,0 +1,32 @@
+
+/* 核心单词复习卡片 */
+QFrame#WordCard {
+    background-color: '{{card_bg}}';
+    border: 1px solid '{{border_color}}';
+    border-radius: 12px;
+}
+
+QLabel#CardCover {
+    border-top-left-radius: 11px;
+    border-top-right-radius: 11px;
+    background-color: '{{cover_bg}}';
+}
+
+/* 补充：单词卡片内部的文本精细微调（可选，利于未来单独调卡片字号） */
+QLabel#CardTag {
+    font-size: 11px;
+    color: #3B82F6;
+    font-weight: bold;
+    background: transparent;
+}
+QLabel#CardWord {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1E293B;
+    background: transparent;
+}
+QLabel#CardNote {
+    font-size: 13px;
+    color: #64748B;
+    background: transparent;
+}

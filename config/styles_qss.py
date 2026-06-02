@@ -9,9 +9,64 @@
 
 
 import os
+import sys
+from warnings import deprecated
 
 from config.theme import FONT_FAMILY, get_theme_colors
 
+
+def get_resource_path(relative_path):
+    """
+    完美兼容 PyInstaller 打包后的资源路径获取函数
+    """
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller 打包后的临时解压路径
+        return os.path.join(sys._MEIPASS, relative_path)
+
+    # 正常开发环境路径：假设当前文件在项目的某子目录下，先退回项目根目录
+    # 你也可以直接用 os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+    return os.path.join(base_dir, relative_path)
+
+def load_qss() -> str:
+    """
+    核心装配引擎：读取 .qss 模板并动态替换变量
+    """
+    # 1. 安全计算路径（防止打包成 exe 后找不到文件）
+    qss_names = ["common", "navigation", "word_card"]
+    qss_paths = [get_resource_path(f"config/qss/{name}.qss") for name in qss_names]
+
+    template_content = ''
+
+    # 2. 获取当前系统所需的颜色字典
+    context = get_theme_colors()
+    context["FONT_FAMILY"] = FONT_FAMILY  # 别忘了把字体放进去
+
+    for qss_path in qss_paths:
+        if not os.path.exists(qss_path):
+            print(f"[QSS 警告] 未找到模板文件: {qss_path}，转为安全空样式。")
+            continue
+        try:
+            sub_qss_content = ''
+            with open(qss_path, "r", encoding="utf-8") as f:
+                sub_qss_content = f.read()
+
+            template_content += sub_qss_content
+
+            # 3. 核心印染：全自动替换占位符
+            for key, value in context.items():
+                # placeholder = f"'{{{{{key}}}}}'"  # 生成 {{variable}} 的形式
+                placeholder = "{{" + key + "}}"
+                print(f'placeholder={placeholder}')
+                template_content = template_content.replace(placeholder, value)
+        except Exception as e:
+            print(f"[QSS 异常] 印染样式表失败: {e}")
+            continue
+
+    return template_content
+
+
+@deprecated("use load_qss function instead")
 def generate_qss() -> str:
     """
     核心装配引擎：读取 .qss 模板并动态替换变量

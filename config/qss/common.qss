@@ -1,0 +1,25 @@
+
+QWidget {
+    font-family: '{{FONT_FAMILY}}';
+    background-color: '{{window_bg}}';
+    color: '{{text_main}}';
+}
+
+QSplitter::handle {
+    background-color: '{{border_color}}';
+}
+
+QWidget#LeftPanel {
+    background-color: '{{left_panel_bg}}';
+}
+
+QLabel#LogoLabel {
+    font-size: 20px;
+    font-weight: bold;
+    color: '{{text_main}}';
+    margin-bottom: 20px;
+    padding-left: 8px;
+    background-color: transparent;
+}
+
+
