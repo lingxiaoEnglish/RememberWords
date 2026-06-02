@@ -46,7 +46,7 @@ class WordReviewPage(QWidget):
         main_layout.setContentsMargins(24, 24, 24, 24)
         main_layout.setSpacing(15)
 
-        title_label = QLabel("🔥 今日复习卡片墙")
+        title_label = QLabel("🔥 Page Lists")
         title_label.setStyleSheet("font-size: 22px; font-weight: bold; background: transparent;")
         main_layout.addWidget(title_label)
 

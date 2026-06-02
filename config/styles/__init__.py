@@ -7,6 +7,12 @@
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
 
+"""
+通过文本设置的样式已废弃。
+采用 qss 的方式
+"""
+
+
 from config.theme import get_theme_colors
 
 # 💡 核心设计：在这里注册所有已经拆分好的子组件样式模块

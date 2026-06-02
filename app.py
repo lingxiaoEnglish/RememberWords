@@ -18,7 +18,8 @@ from PyQt6.QtGui import QGuiApplication
 
 
 # 导入自定义解耦模块
-from config.styles import generate_qss
+# from config.styles import generate_qss #这个是选择器文本的样式
+from config.styles_qss import generate_qss
 from views.review_page import WordReviewPage
 from views.stats_page import StatisticsPage
 from views.settings_page import SettingsPage
@@ -34,11 +35,11 @@ class AppWindow(QWidget):
         self.page_stats = None
         self.page_settings = None
         self.json_path = json_path
+
         # pages 数据源
         self.pages = None
         # total marks 数据源
         self.marks = None
-
 
         self.init_ui()
         self.load_data()
@@ -71,6 +72,7 @@ class AppWindow(QWidget):
         main_splitter = QSplitter(Qt.Orientation.Horizontal)
         # 分界线
         # main_splitter.setHandleWidth(1)
+        main_splitter.setHandleWidth(1)
 
         # 左侧导航面板
         left_panel = QWidget()
@@ -123,6 +125,7 @@ class AppWindow(QWidget):
 
     def apply_auto_theme(self):
         qss_str = generate_qss()
+        print(qss_str)
         self.setStyleSheet(qss_str)
 
 
