@@ -6,11 +6,8 @@
 @Date    : 2026-06-01 08:49
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
-
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (QWidget, QFrame, QVBoxLayout, QLabel, QHBoxLayout)
-from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply
-from PyQt6.QtGui import QImage, QPixmap, QPainter, QPainterPath
 from models.page_models import *
 from config.style_manager import StyleManager
 from LXWidgets.LXImageWidget import LXImageWidget
@@ -32,7 +29,6 @@ class WordCard(QFrame):
         self.raw_pixmap = None # 用于缓存下载好的原始图片，以便在缩放时重新渲染
         self.init_ui()
         self.start_image_download()
-        print(f"-------current_width:{self.width()}")
 
     def start_image_download(self):
         """
@@ -50,6 +46,7 @@ class WordCard(QFrame):
         pass
 
     def init_ui(self):
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFixedWidth(240)
         # use vertical layout flow
         self.card_layout = QVBoxLayout(self)
