@@ -10,7 +10,7 @@ from PyQt6.QtNetwork import QNetworkAccessManager
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QScrollArea, QGridLayout
 from PyQt6.QtCore import Qt, pyqtSignal
 
-from views.word_card import WordCard
+from views.Pages.word_card import WordCard
 from models.mark_models import *
 from models.page_models import *
 from typing_extensions import List
@@ -29,6 +29,7 @@ class WordReviewPage(QWidget):
     def reload_cards(self, pages: List[Page], marks: List[Mark]):
         print(f"pages,count {len( pages)}")
         print(f"marks,count {len( marks)}")
+        self._clear_cards()
         COLUMNS = 4  # 标准三列排布瀑布流
         for index, item in enumerate(pages):
 
@@ -42,8 +43,21 @@ class WordReviewPage(QWidget):
         # 防止网格拉伸的兜底弹簧
         self.grid_layout.setRowStretch(self.grid_layout.rowCount(), 1)
 
-    # def click_word_card(self, page: Page):
-    #     print(f"click word card: {page.title}")
+    def _clear_cards(self):
+        # 倒序遍历，安全抽离
+        for i in reversed(range(self.grid_layout.count())):
+            item = self.grid_layout.takeAt(i)  # takeAt 会把条目直接从布局中彻底移除
+            if item:
+                widget = item.widget()
+                if widget:  # 确保是控件后再处理
+                    # 显式断开所有信号连接，防止内存泄漏
+                    try:
+                        widget.signal_clicked.disconnect()  # noqa
+                    except (TypeError, RuntimeError):
+                        pass
+
+                    widget.setParent(None)
+                    widget.deleteLater()  # 异步销毁内存
 
     def init_page_ui(self):
         main_layout = QVBoxLayout(self)
