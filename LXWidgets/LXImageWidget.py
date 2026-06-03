@@ -9,267 +9,290 @@
 from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QImage, QColor
 from PyQt6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 from PyQt6.QtWidgets import QLabel
-from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QRect
+from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QRect, QSize
 import resources_rc
-
 
 class LXImageWidget(QLabel):
     """
-    LXImageWidget: 带圆角的图片控件
+    LXImageWidget: 高性能带圆角的图片控件（工业级完美版）
+    内置全自动异步下载、深浅色模式占位图高精染色、多维圆角裁剪及双级缓存防抖机制。
     """
     load_finished = pyqtSignal(bool)
 
-
     def __init__(self, radius=None):
         """
-        :param radius: 圆角半径,可以是以下几种格式:
-                       - None 或 0: 完全直角，无圆角
-                       - int / float: 四个角拥有相同的圆角半径 (例如: 11)
-                       - tuple / list (len=4): 分别指定 (左上, 右上, 右下, 左下) 的半径
-                                              (例如顶栏卡片常用: (11, 11, 0, 0))
+        :param radius: 圆角半径，支持 int/float 或 tuple/list (左上, 右上, 右下, 左下)
         """
         super().__init__()
-        self.pixmap = None
         self.radii = self._parse_radius(radius)
-        # 激活背景色，保证没有图片下载成功前，QSS 中的背景色(cover_bg)能正常渲染占位
+
+        # 激活背景色，保证没有图片下载成功前，QSS 中的背景色能正常渲染铺底
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
-        self.reply = None
-        self.raw_pixmap = None  # 缓存原始图片，用于后续缩放或重绘
         self.network_manager = None
-        # 标记当前内存中的 pixmap 是否是占位图
+        self.reply = None
+
+        # --- 统一的图像核心缓存 ---
+        self.raw_pixmap = None  # 原始高清图片缓存 (网络大图或占位大图)
+        self.scaled_pixmap = None  # 直接用于 paintEvent 渲染的精确物理大小图片
+        self.cached_path = None  # 矢量圆角裁剪路径 QPainterPath 缓存
+
         self.is_placeholder_active = False
+        self.placeholder_name = "placeholder.png"
+
+    def _parse_radius(self, radius):
+        """解析多维圆角参数"""
+        if radius is None or radius == 0:
+            return [0.0, 0.0, 0.0, 0.0]
+        if isinstance(radius, (int, float)):
+            r = float(radius)
+            return [r, r, r, r]
+        if isinstance(radius, (tuple, list)) and len(radius) == 4:
+            return [float(r) for r in radius]
+        return [0.0, 0.0, 0.0, 0.0]
+
+    def setRadius(self, radius):
+        """动态改变圆角，清空矢量路径缓存"""
+        if radius == self.radii:
+            return
+        self.radii = self._parse_radius(radius)
+        self.cached_path = None
+        self.update()
 
     def set_placeholder(self, image_name="placeholder.png"):
-        """
-        通过图片文件名直接从内存加载
-        :param image_name: placeholder.png
-        """
-        # 直接根据名字从字典里捞 QPixmap
-        placeholder_pixmap = resources_rc.get_pixmap(image_name)
+        """设置占位图，安全重置网络状态"""
+        self.placeholder_name = image_name
+        self.raw_pixmap = resources_rc.get_pixmap(image_name)
 
-        if not placeholder_pixmap.isNull():
+        if self.raw_pixmap and not self.raw_pixmap.isNull():
             self.is_placeholder_active = True
-            self.setPixmap(placeholder_pixmap)
+            self._update_scaled_pixmap()
         else:
             self.is_placeholder_active = False
-            print(f"[LXImageWidget] Failed to load placeholder image from resources")
+            self.raw_pixmap = None
+            self.scaled_pixmap = None
+            print(f"[LXImageWidget] Failed to load placeholder image: {image_name}")
 
-    def load_from_url(self, url_str:str, network_manager: QNetworkAccessManager=None):
-        """
-        load 图片，并自动渲染
-        """
+        self.update()
+
+    def load_from_url(self, url_str: str, network_manager: QNetworkAccessManager = None):
+        """高性能网络图片异步拉取"""
         if not url_str:
             return
         self.network_manager = network_manager or QNetworkAccessManager(self)
 
+        # 【安全加固】断开旧连接，防止 abort() 触发 finished 信号导致状态错乱
         if self.reply:
             try:
-                self.reply.disconnect()
-            except TypeError:
+                self.reply.finished.disconnect(self._on_download_finished)
+            except (TypeError, RuntimeError):
                 pass
             self.reply.abort()
+            self.reply.deleteLater()
             self.reply = None
+
+        # 先平滑切入本地占位图状态
+        self.set_placeholder(self.placeholder_name)
 
         url = QUrl(url_str)
         request = QNetworkRequest(url)
-        self.set_placeholder()
-        # self.reply = self.network_manager.get(request)
-        # self.reply.finished.connect(self._on_download_finished)
+        # 允许底层网络根据标准网络协议自动处理 301/302 重定向
+        request.setAttribute(QNetworkRequest.Attribute.RedirectPolicyAttribute, True)
+
+        self.reply = self.network_manager.get(request)
+        self.reply.finished.connect(self._on_download_finished)
 
     def _on_download_finished(self):
+        """网络下载完成后的核心处理链"""
+        if not self.reply:
+            return
+
         success = False
-        if self.reply and self.reply.error() == QNetworkReply.NetworkError.NoError:
+        if self.reply.error() == QNetworkReply.NetworkError.NoError:
             image_data = self.reply.readAll()
             image = QImage()
             if image.loadFromData(image_data):
                 self.raw_pixmap = QPixmap.fromImage(image)
-                self.is_placeholder_active = False  # 切换为正式网络图
-                # 直接渲染
-                self.setPixmap(self.raw_pixmap)
+                self.is_placeholder_active = False  # 安全切换标志位
+                self._update_scaled_pixmap()  # 仅在此处计算一次缩放缓存
                 success = True
             else:
                 print(f"[LXImageWidget] Failed to load image data from {self.reply.url().toString()}")
         else:
-            if self.reply:
+            # 过滤掉由于切歌或主动取消导致的异常 log 打印
+            if self.reply.error() != QNetworkReply.NetworkError.OperationCanceledError:
                 print(f"[LXImageWidget] Error downloading: {self.reply.errorString()}")
 
-        if self.reply:
-            self.reply.deleteLater()
-            self.reply = None
+        self.reply.deleteLater()
+        self.reply = None
 
         self.load_finished.emit(success)
-
-    def _parse_radius(self, radius):
-        if radius is None or radius == 0:
-            return [0.0, 0.0, 0.0, 0.0]
-
-        if isinstance(radius, (int, float)):
-            r = float(radius)
-            return [r, r, r, r]
-
-        if isinstance(radius, (tuple, list)) and len(radius) == 4:
-            return [float(r) for r in radius]
-
-        return [0.0, 0.0, 0.0, 0.0]
+        self.update()
 
     def setPixmap(self, pixmap: QPixmap):
-        """
-        注入原始高清图并更新画布
-        :param pixmap: 原始高清图片
-        """
-        self.pixmap = pixmap
-        """
-        调用 self.update() 不会立刻去画图，而是向 Qt 的事件循环（Event Loop）发送一个重绘请求（Paint Event）。
-        Qt 收到请求后，会在极短的时间内（通常是几毫秒内）自动去调用该控件的 paintEvent(self, event) 方法。
-        """
+        """兼容外部直接手动注入大图的情形"""
+        self.raw_pixmap = pixmap
+        self.is_placeholder_active = False
+        self._update_scaled_pixmap()
         self.update()
 
-    def setRadius(self, radius):
-        """
-        设置圆角半径
-        :param radius: 圆角半径
-        """
-        self.radii = self._parse_radius(radius)
+    def resizeEvent(self, event):
+        """尺寸变化时，让所有图形线段缓存、图像缩放缓存精准更新"""
+        super().resizeEvent(event)
+        self.cached_path = None
+        self._update_scaled_pixmap()
         self.update()
 
-    def paintEvent(self, a0):
-        # super().paintEvent(a0)
-        # 注意：这里千万不要调用 super().paintEvent(a0)，因为我们要完全托管绘制
-        # 如果调用父类，QLabel 内部会用直角原生的方式再画一次图片，破坏圆角裁剪效果
-        #托管绘制，不调用super().paintEvent(event) 避免直角底色冲突
-
-        painter = QPainter(self)
+    def _update_scaled_pixmap(self):
         """
-            在 QPainter 的绘制逻辑中，painter.restore() 与 painter.save() 是必须成对出现的黄金搭档。
-            它们的核心作用是：通过内部维护的一个栈（Stack），来保护、备份和恢复 QPainter 的绘制状态。
+        核心缓存屏障：将图像的所有密集型像素计算完全隔离在 paintEvent 之外
         """
+        if self.raw_pixmap is None or self.raw_pixmap.isNull():
+            self.scaled_pixmap = None
+            return
 
+        w_size = self.size()
+        if w_size.width() <= 0 or w_size.height() <= 0:
+            self.scaled_pixmap = None  # 边缘防御：防止不合理的初次零宽尺寸导致缓存残留
+            return
 
-        # 开启顶级硬件级抗锯齿与像素平滑变换，保障边缘锐利无毛刺
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        # 获取当前屏幕的物理像素比（Mac 一般为 2.0，Windows 可能是 1.25, 1.5, 2.0 等）
+        dpr = self.devicePixelRatio()
 
-        # check all radius are zero
-        is_rect_mode = all(r == 0.0 for r in self.radii)
-        widget_rect = self.rect()
+        if self.is_placeholder_active:
+            # --- 占位图居中且自适应染色逻辑 ---
+            scale_factor = 0.8
+            # 1. 计算出图标在当前屏幕下需要的【物理像素大小】
+            logical_side = int(min(w_size.width(), w_size.height()) * scale_factor)
+            physics_side = int(logical_side * dpr)
 
-        # 自动获取当前系统的 QSS 背景色或主题底色进行铺底
-        bg_color = self.palette().color(self.backgroundRole())
-        # 💡 核心算法：通过判断底色的亮度（Lightness）来自动化识别深浅色模式
-        # bg_color.lightness() 范围是 0-255，值越大说明底色越亮（浅色模式）
-        is_light_mode = bg_color.lightness() > 128
+            if physics_side <= 0:
+                self.scaled_pixmap = None
+                return
 
-        # --- 1. 绘制底色带安全圆角裁剪（适配深色/浅色模式） ---
-        # 如果我们在 QSS 里为 LXImageWidget 设置了 background-color，
-        # 如果不先画底色，裁剪网络图时边缘可能会漏出大片空白，或者占位图四周会透明。
-        painter.save()
-        if not is_rect_mode:
-            path = self._get_rounded_path()
-            painter.setClipPath(path) #设置裁剪区域
-        painter.fillRect(widget_rect, bg_color)
-        painter.restore()
+            # 2. 直接对原始大图拉伸到【物理像素大小】，确保无论深浅模式，底图都是绝对高清的
+            icon_scaled = self.raw_pixmap.scaled(
+                QSize(physics_side, physics_side),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
 
-        # --- 2. 绘制图片 ---
-        if self.pixmap and not self.pixmap.isNull():
-            painter.save()
+            # 判断深浅色模式
+            bg_color = self.palette().color(self.backgroundRole())
+            is_light_mode = bg_color.lightness() > 128
 
-            # 如果不是直角模式，开启安全圆角边界裁剪
-            if not is_rect_mode:
-                path = self._get_rounded_path()
-                painter.setClipPath(path)
-
-            if self.is_placeholder_active:
-                # 💡 占位图专属逻辑：计算居中正方形且不拉伸
-                # 限制占位图的最大高宽不超过容器宽高的 50%（或者你可以随意调整这个比例系数）
-                scale_factor = 0.8
-                side_len = min(widget_rect.width(), widget_rect.height()) * scale_factor
-
-                # 建立正方形目标区域
-                target_rect = QRect(
-                    int((widget_rect.width() - side_len) / 2),
-                    int((widget_rect.height() - side_len) / 2),
-                    int(side_len),
-                    int(side_len)
-                )
-
-                # 🎨 【核心魔法】如果是浅色模式，动态将白色图案染色成高质感灰色
-                if is_light_mode:
-                    # 1. 先把白色占位图绘制到一层临时画布（Layer）上
-                    buffer = QPixmap(self.pixmap.size())
-                    buffer.fill(Qt.GlobalColor.transparent)  # 保持透明底
-                    buffer_painter = QPainter(buffer)
-                    buffer_painter.drawPixmap(0, 0, self.pixmap)
-
-                    # 2. 启用 SourceAtop 混合模式（只在有图像像素的地方覆盖颜色）
-                    buffer_painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
-
-                    # 3. 泼上一层优雅的灰色（这里用 #8E8E93，即苹果经典的系统冷灰）
-                    buffer_painter.fillRect(buffer.rect(), QColor("#8E8E93"))
-                    buffer_painter.end()
-
-                    # 4. 绘制染色后的灰色占位图
-                    painter.drawPixmap(target_rect, buffer)
-                else:
-                    # 深色模式：保持原汁原味的白色透明图
-                    painter.drawPixmap(target_rect, self.pixmap)
+            # 如果是浅色模式，采用纯像素无损染色（直接对物理 QPixmap 进行染色，不经过二次坐标变换）
+            if is_light_mode:
+                tintED_pixmap = QPixmap(icon_scaled.size())
+                tintED_pixmap.fill(Qt.GlobalColor.transparent)
+                tp = QPainter(tintED_pixmap)
+                tp.drawPixmap(0, 0, icon_scaled)
+                # 采用 SourceIn 完美染色（冷灰色）
+                tp.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+                tp.fillRect(tintED_pixmap.rect(), QColor("#8E8E93"))
+                tp.end()
+                icon_final = tintED_pixmap
             else:
-                # 💡 正式网络图逻辑：保持原本的铺满/拉伸裁剪模式
-                painter.drawPixmap(widget_rect, self.pixmap)
+                # 深色模式：保持原生纯白
+                icon_final = icon_scaled
 
+            # 3. 告诉 Qt 这个最终的图标已经具备 dpr 物理像素，还原它的逻辑尺寸
+            icon_final.setDevicePixelRatio(dpr)
+
+            # 4. 创建一张与物理 Widget 完全等大的透明底大画布
+            final_physics_size = QSize(int(w_size.width() * dpr), int(w_size.height() * dpr))
+            final_placeholder = QPixmap(final_physics_size)
+            final_placeholder.fill(Qt.GlobalColor.transparent)
+            final_placeholder.setDevicePixelRatio(dpr)  # 激活大画布的 DPR 映射机制
+
+            # 5. 通过逻辑坐标进行绝对居中绘制，Qt 会自动进行完美的底片像素对齐
+            p = QPainter(final_placeholder)
+            p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+
+            # 这里 icon_final 内部由于正确设置了 dpr，其逻辑大小会自动适配
+            icon_w = int(icon_final.width() / dpr)
+            icon_h = int(icon_final.height() / dpr)
+            target_rect = QRect(
+                (w_size.width() - icon_w) // 2,
+                (w_size.height() - icon_h) // 2,
+                icon_w,
+                icon_w
+            )
+            p.drawPixmap(target_rect, icon_final)
+            p.end()
+
+            self.scaled_pixmap = final_placeholder
+
+        else:
+            # --- 网络正式大图的平滑硬拉伸缩放 ---
+            physics_target_size = QSize(int(w_size.width() * dpr), int(w_size.height() * dpr))
+            self.scaled_pixmap = self.raw_pixmap.scaled(
+                physics_target_size,
+                Qt.AspectRatioMode.IgnoreAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            # 注入屏幕真实的像素比例，让 paintEvent 绘制时按 1:1 像素对齐，完全杜绝发虚
+            self.scaled_pixmap.setDevicePixelRatio(dpr)
+
+    def paintEvent(self, event):
+        """
+        极致轻量级的绘制：只有图层平铺，零数学运算
+        """
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        widget_rect = self.rect()
+        is_rect_mode = all(r == 0.0 for r in self.radii)
+
+        # 路径懒加载
+        if not is_rect_mode and self.cached_path is None:
+            self.cached_path = self._get_rounded_path()
+
+        # 1. 绘制底色
+        bg_color = self.palette().color(self.backgroundRole())
+        if not is_rect_mode:
+            painter.save()
+            painter.setClipPath(self.cached_path)
+            painter.fillRect(widget_rect, bg_color)
             painter.restore()
+        else:
+            painter.fillRect(widget_rect, bg_color)
 
-        painter.end() # 关闭绘制设备，并立即将所有缓存的绘制指令“冲刷”（Flush）到硬件屏幕上
-        """
-            1. 触发真正的硬件渲染（Flush 机制）
-                为了提高性能，QPainter 在执行 drawPixmap、fillRect 等方法时，并不是每调用一次就立刻去刷一次屏幕（这样会导致严重的掉帧和卡顿）。
-                它会把这些指令暂时攒在内存缓存区里。
-                当你调用 painter.end() 时，Qt 会收到信号，将缓存中的所有图形和指令批量打包一次性发送给底层的操作系统图形引擎（如 macOS 的 Metal 或 Windows 的 Direct3D），
-                在屏幕上真正把画面呈显出来。
-
-            2. 解除设备锁定（Release Device）
-                当一个 QPainter 激活在某个控件（如 LXImageWidget）上时，该控件的重绘系统就会进入锁定状态，不允许其他地方同时对其自绘。
-                end() 会释放这个绘制设备的控制权，让控件重新回归正常的系统流中。
-
-            3. 释放底层 C++ 资源
-                QPainter 极其依赖底层的 C++ 原生句柄和内存。
-                调用 end() 会立即释放对应的系统画笔、画刷句柄，避免潜在的内存泄漏或图形句柄耗尽。
-        """
-
-
+        # 2. 直接倾泻缓存好的 Pixmap 像素，不带任何缩放损耗
+        if self.scaled_pixmap and not self.scaled_pixmap.isNull():
+            if not is_rect_mode:
+                painter.save()
+                painter.setClipPath(self.cached_path)
+                painter.drawPixmap(widget_rect, self.scaled_pixmap)
+                painter.restore()
+            else:
+                painter.drawPixmap(widget_rect, self.scaled_pixmap)
 
     def _get_rounded_path(self) -> QPainterPath:
-        """根据当前标准化的 [tl, tr, br, bl] 独立勾勒高精度封闭路径"""
+        """根据当前标准化的 radii 勾勒高精度矢量封闭路径"""
         w, h = self.width(), self.height()
         tl, tr, br, bl = self.radii
         path = QPainterPath()
 
-        # 1. 从左上角圆角终点出发 (x=tl, y=0)
         path.moveTo(tl, 0)
-
-        # 2. 绘制顶部横线 -> 右上角圆角
         path.lineTo(w - tr, 0)
         if tr > 0:
-            # 二次贝塞尔曲线
             path.quadTo(w, 0, w, tr)
         else:
             path.lineTo(w, 0)
 
-        # 3. 绘制右侧竖线 -> 右下角圆角
         path.lineTo(w, h - br)
         if br > 0:
             path.quadTo(w, h, w - br, h)
         else:
             path.lineTo(w, h)
 
-        # 4. 绘制底部横线 -> 左下角圆角
         path.lineTo(bl, h)
         if bl > 0:
             path.quadTo(0, h, 0, h - bl)
         else:
             path.lineTo(0, h)
 
-        # 5. 绘制左侧竖线 -> 回到左上角圆角起点完成封闭
         path.lineTo(0, tl)
         if tl > 0:
             path.quadTo(0, 0, tl, 0)
