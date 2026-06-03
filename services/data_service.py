@@ -10,6 +10,7 @@
 # ... existing code ...
 import json
 import os
+from collections import defaultdict
 from typing import List, ClassVar, Any, Dict, Optional
 from warnings import deprecated
 
@@ -24,25 +25,43 @@ class DataService:
     RAW_DATA: ClassVar[Optional[Dict[str, Any]]] = None
 
     @staticmethod
-    def load_pages_from_json(json_path: str) -> List[Page]:
+    def load_pages_from_json(json_path: str, marks: List[Mark] = None) -> List[Page]:
         """
         load raw data via json path
         :param json_path:
+        :param marks: all word items
         :return:
         """
         if not DataService.load_raw_data_from_json__(json_path):
             print("Fail to load marks data")
             return []
         bookmarks = DataService.RAW_DATA.get("bookmarks", [])
+        if not bookmarks:
+            return []
+
+        # 针对大数据量预索引优化
+        # 使用 defaultdict(list) 自动处理 key 不存在的情况
+        marks_by_bookmark = defaultdict(list)
+        if marks:
+            for mark in marks:
+                marks_by_bookmark[mark.bookmark].append(mark)
+                print("")
+
+
+
         bookmarks_datas = []
         for index, item in enumerate(bookmarks):
-            mark = Page.model_validate(item)
-            bookmarks_datas.append(mark)
+            try:
+                page = Page.model_validate(item)
+                page_id = page.id
+                page.marks = marks_by_bookmark.get(page_id, [])
+                bookmarks_datas.append(page)
+            except Exception as e:
+                print(f"解析单个 Page 数据失败: {e}, 略过该条数据")
+                continue
 
         # 根据createAt降序
         bookmarks_datas.sort(key=lambda x: x.createdAt, reverse=True)
-        print(len(bookmarks_datas))
-        print("-----")
         return bookmarks_datas
 
 

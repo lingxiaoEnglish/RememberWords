@@ -26,9 +26,7 @@ class WordReviewPage(QWidget):
         self.network_manager = QNetworkAccessManager(self)
         self.init_page_ui()
 
-    def reload_cards(self, pages: List[Page], marks: List[Mark]):
-        print(f"pages,count {len( pages)}")
-        print(f"marks,count {len( marks)}")
+    def reload_cards(self, pages: List[Page]):
         self._clear_cards()
         COLUMNS = 4  # 标准三列排布瀑布流
         for index, item in enumerate(pages):

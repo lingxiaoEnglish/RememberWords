@@ -9,7 +9,7 @@
 
 # ... existing code ...
 from typing import List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from .common_models import CommonModel
 
 class Meta(BaseModel):
@@ -24,17 +24,14 @@ class HighlightSource(BaseModel):
     id: str
 
 class Mark(CommonModel):
-
-
     text: str = ""
-
     mediaType: str = ""
     color: str = ""
-
     highlightSource: HighlightSource = None
     domElementOffsetTop: int = 0
     domElementOffsetLeft: int = 0
-    _bookmark: str = ""
+    # _bookmark: str = ""
+    bookmark: str = Field(default="", alias="_bookmark")    #将私有属性改为标准模型字段，并使用 alias 映射 JSON 中的下划线键名
 
     notes: str = ""
 

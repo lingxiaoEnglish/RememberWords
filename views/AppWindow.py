@@ -69,8 +69,8 @@ class AppWindow(QWidget):
 
     def load_data(self):
         self.marks = DataService.load_marks_from_json(self.json_path)
-        self.pages = DataService.load_pages_from_json(self.json_path)
-        self.page_review.reload_cards(self.pages, self.marks)
+        self.pages = DataService.load_pages_from_json(self.json_path, self.marks)
+        self.page_review.reload_cards(self.pages)
 
     def switch_page(self, index):
         """核心路由控制：当左侧点击了第几项，右侧就切到对应的子视图"""

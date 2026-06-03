@@ -18,7 +18,8 @@ class CommonModel(BaseModel):
     url: str
     tags: List[str] = Field(default_factory=list)
     modifiedAt: int = 0
-    _id: str = ""
+    # _id: str = ""
+    id: str = Field(default="", alias="_id")    #将私有属性改为标准模型字段，并使用 alias 映射 JSON 中的下划线键名
     _objectStore: str = ""
 
     _user: str = ""

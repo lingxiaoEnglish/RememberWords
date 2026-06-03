@@ -68,12 +68,13 @@ class WordCard(QFrame):
         # self.cover_img.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.card_layout.addWidget(self.cover_img)
 
+
         # text container
         text_container = QWidget()
         text_container.setObjectName("TextContainer")
         text_layout = QVBoxLayout(text_container)
-        text_layout.setContentsMargins(10, 0, 10, 0)
-        text_layout.setSpacing(8)
+        text_layout.setContentsMargins(10, 0, 10, 10)
+        text_layout.setSpacing(3)
 
         # title
         title_label = QLabel(self.page.title)
@@ -81,13 +82,18 @@ class WordCard(QFrame):
         title_label.setWordWrap(True)
         text_layout.addWidget(title_label)
 
+        text_layout.addStretch(1)
+
+
         # highlights and notes
         highlight_notes_layout = QHBoxLayout()
-        hightlight_label = QLabel(f"Highlights: {10}")
+        hightlight_label = QLabel(f"Highlights: {len(self.page.marks)}")
         hightlight_label.setObjectName("CardHighlight")
         highlight_notes_layout.addWidget(hightlight_label)
+        # 它会强制把后面的控件推到布局的最右端
+        highlight_notes_layout.addStretch(1)
 
-        notes_label = QLabel(f"Notes: {20}")
+        notes_label = QLabel(f"Notes: {len(self.page.marks)}")
         notes_label.setObjectName("CardNotes")
         highlight_notes_layout.addWidget(notes_label)
 
@@ -97,6 +103,7 @@ class WordCard(QFrame):
         source_label = QLabel(self.page.origin)
         source_label.setObjectName("CardSource")
         source_time_layout.addWidget(source_label)
+        source_time_layout.addStretch(1)
         time_label = QLabel(f"{self.page.created_date}")
         time_label.setObjectName("CardTime")
         source_time_layout.addWidget(time_label)

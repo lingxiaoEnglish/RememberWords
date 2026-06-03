@@ -9,6 +9,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 from .common_models import CommonModel
+from .marks_model_deprecated import Marks
 
 class PageMetaImg(BaseModel):
     url: str = ""
@@ -31,4 +32,5 @@ class Page(CommonModel):
     permission: str = ""
     isStarred: bool = False
     meta: Optional[PageMeta] = None
+    marks: Optional[List[Marks]] = None
 
