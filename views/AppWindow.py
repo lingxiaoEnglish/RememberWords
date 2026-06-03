@@ -47,7 +47,7 @@ class AppWindow(QWidget):
         print(f"点击了 {page.title}")
         self.clear_current_preview()
 
-        self.current_preview = PreviewPage( page, self.marks)
+        self.current_preview = PreviewPage(page)
 
         self.current_preview.signal_close.connect(self.close_preview_page)
 

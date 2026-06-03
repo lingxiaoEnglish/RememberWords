@@ -126,7 +126,7 @@ class LXImageWidget(QLabel):
         self.reply.deleteLater()
         self.reply = None
 
-        self.load_finished.emit(success)
+        self.load_finished.emit(success) # noqa
         self.update()
 
     def setPixmap(self, pixmap: QPixmap):

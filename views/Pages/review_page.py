@@ -15,7 +15,6 @@ from models.mark_models import *
 from models.page_models import *
 from typing_extensions import List
 
-
 # ... existing code ...
 class WordReviewPage(QWidget):
 
@@ -30,7 +29,6 @@ class WordReviewPage(QWidget):
         self._clear_cards()
         COLUMNS = 4  # 标准三列排布瀑布流
         for index, item in enumerate(pages):
-
             card = WordCard(page=item,
                             network_manager=self.network_manager)
             card.signal_clicked.connect(self.signal_clicked.emit) # noqa

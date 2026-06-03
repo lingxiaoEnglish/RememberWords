@@ -21,3 +21,29 @@ QLabel#LogoLabel {
     padding-left: 8px;
     background-color: transparent;
 }
+
+QPushButton#CloseBtn {
+    /* 适当大一点的交互区域，符合视网膜屏触感 */
+    min-width: 28px;
+    max-width: 28px;
+    min-height: 28px;
+    max-height: 28px;
+
+    border: none;
+    border-radius: 6px; /* macOS 标志性的硬朗小圆角 */
+    background-color: transparent; /* 平时完全透明，融入背景 */
+    color: '{{text_main}}';
+}
+
+/* 鼠标悬停：呈现经典的 macOS 浅灰果冻层 */
+QPushButton#CloseBtn:hover {
+    background-color: '{{border_color}}'; /* 浅色模式用这个 */
+    /* 如果你是深色模式，请切换为：background-color: rgba(255, 255, 255, 0.1); */
+/*    color: #111111;*/
+}
+
+/* 鼠标按下：微凹陷质感 */
+QPushButton#CloseBtn:pressed {
+    background-color: rgba(0, 0, 0, 0.12);
+    /* 深色模式切换为：background-color: rgba(255, 255, 255, 0.15); */
+}

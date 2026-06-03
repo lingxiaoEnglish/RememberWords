@@ -45,9 +45,6 @@ class DataService:
         if marks:
             for mark in marks:
                 marks_by_bookmark[mark.bookmark].append(mark)
-                print("")
-
-
 
         bookmarks_datas = []
         for index, item in enumerate(bookmarks):

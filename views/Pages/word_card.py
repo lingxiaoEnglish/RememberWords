@@ -68,7 +68,6 @@ class WordCard(QFrame):
         # self.cover_img.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.card_layout.addWidget(self.cover_img)
 
-
         # text container
         text_container = QWidget()
         text_container.setObjectName("TextContainer")

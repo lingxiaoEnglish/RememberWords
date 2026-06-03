@@ -10,6 +10,7 @@
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QGuiApplication
 import platform
+from config.theme_color import ThemeColor
 
 # 跨平台安全字体族：优先匹配 Mac/iOS 原生高清字体，Windows 自动降级匹配微软雅黑
 # FONT_FAMILY = '"Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif'
@@ -29,12 +30,8 @@ FONT_FAMILY = _get_platform_font()
 def get_theme_colors() -> dict:
     """动态分析底层操作系统调色板，返回自适应黑白双色变量字典"""
     is_dard_mode = _get_appearance_mode()
-    if is_dard_mode:
-        # === 暗黑模式核心色值 ===
-        return _get_dark_model_colors()
-    else:
-        # === 浅色模式核心色值 ===
-        return _get_light_model_colors()
+    colors = ThemeColor.get_theme_dict(is_light_mode=(not is_dard_mode))
+    return colors
 
 def _get_appearance_mode() -> bool:
     """获取当前系统外观模式，返回布尔值"""
@@ -54,33 +51,33 @@ def _get_appearance_mode() -> bool:
         return False
 
 
-def _get_dark_model_colors() -> dict:
-    """get dark model colors"""
-    return {
-        "window_bg": "#121212",
-        "left_panel_bg": "#1E1E1E",
-        "right_stack_bg": "#121212",
-        "border_color": "#2D2D2D",
-        "text_main": "#E0E0E0",
-        "text_muted": "#A0A0A0",
-        "nav_item_hover": "#2C2C2C",
-        "nav_item_active": "#3B82F6",
-        "card_bg": "#1E1E1E",
-        "cover_bg": "#252525"
-    }
-
-
-def _get_light_model_colors() -> dict:
-    """get light model colors"""
-    return {
-        "window_bg": "#FFFFFF",
-        "left_panel_bg": "#F8FAFC",
-        "right_stack_bg": "#FFFFFF",
-        "border_color": "#E2E8F0",
-        "text_main": "#1E293B",
-        "text_muted": "#64748B",
-        "nav_item_hover": "#E2E8F0",
-        "nav_item_active": "#3B82F6",
-        "card_bg": "#FFFFFF",
-        "cover_bg": "#F1F5F9"
-    }
+# def _get_dark_model_colors() -> dict:
+#     """get dark model colors"""
+#     return {
+#         "window_bg": "#121212",
+#         "left_panel_bg": "#1E1E1E",
+#         "right_stack_bg": "#121212",
+#         "border_color": "#2D2D2D",
+#         "text_main": "#E0E0E0",
+#         "text_muted": "#A0A0A0",
+#         "nav_item_hover": "#2C2C2C",
+#         "nav_item_active": "#3B82F6",
+#         "card_bg": "#1E1E1E",
+#         "cover_bg": "#252525"
+#     }
+#
+#
+# def _get_light_model_colors() -> dict:
+#     """get light model colors"""
+#     return {
+#         "window_bg": "#FFFFFF",
+#         "left_panel_bg": "#F8FAFC",
+#         "right_stack_bg": "#FFFFFF",
+#         "border_color": "#E2E8F0",
+#         "text_main": "#1E293B",
+#         "text_muted": "#64748B",
+#         "nav_item_hover": "#E2E8F0",
+#         "nav_item_active": "#3B82F6",
+#         "card_bg": "#FFFFFF",
+#         "cover_bg": "#F1F5F9"
+#     }
