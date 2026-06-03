@@ -6,6 +6,7 @@
 @Date    : 2026-06-01 16:09
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
+from warnings import deprecated
 
 """
 通过文本设置的样式已废弃。
@@ -20,7 +21,7 @@ from config.styles import base
 from config.styles import navigation
 from config.styles import word_card
 
-
+@deprecated("使用 qss 样式表代替")
 def generate_qss() -> str:
     """
     整合器核心：动态获取当前系统颜色，

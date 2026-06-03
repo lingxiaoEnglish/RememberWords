@@ -6,8 +6,11 @@
 @Date    : 2026-06-01 16:10
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
+from warnings import deprecated
+
 
 # ... existing code ...
+@deprecated("use qss instead")
 def get_style(colors: dict) -> str:
     """复习卡片与网络封面的原子样式"""
     is_dark = colors["window_bg"] == "#121212"

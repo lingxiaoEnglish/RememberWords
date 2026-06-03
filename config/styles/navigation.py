@@ -6,7 +6,10 @@
 @Date    : 2026-06-01 16:10
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
+from warnings import deprecated
 
+
+@deprecated("using qss instead")
 def get_style(colors: dict) -> str:
     """导航栏与主侧边栏的原子样式"""
     return f"""
