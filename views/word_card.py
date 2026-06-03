@@ -6,13 +6,16 @@
 @Date    : 2026-06-01 08:49
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (QWidget, QFrame, QVBoxLayout, QLabel, QHBoxLayout)
 from models.page_models import *
 from config.style_manager import StyleManager
 from LXWidgets.LXImageWidget import LXImageWidget
 
 class WordCard(QFrame):
+
+    signal_clicked = pyqtSignal(Page)
+
     def __init__(self, page: Page, network_manager=None):
         """
         init word card widget
@@ -29,6 +32,10 @@ class WordCard(QFrame):
         self.raw_pixmap = None # 用于缓存下载好的原始图片，以便在缩放时重新渲染
         self.init_ui()
         self.start_image_download()
+
+    def mouseReleaseEvent(self, a0):
+        self.signal_clicked.emit(self.page)     # noqa
+        super().mouseReleaseEvent(a0)
 
     def start_image_download(self):
         """

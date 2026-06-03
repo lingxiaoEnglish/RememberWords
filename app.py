@@ -21,6 +21,7 @@ from PyQt6.QtGui import QGuiApplication
 # from config.styles import generate_qss #这个是选择器文本的样式
 from config.styles_qss import generate_qss
 from config.style_manager import StyleManager
+from models.page_models import Page
 from views.review_page import WordReviewPage
 from views.stats_page import StatisticsPage
 from views.settings_page import SettingsPage
@@ -44,6 +45,10 @@ class AppWindow(QWidget):
 
         self.init_ui()
         self.load_data()
+
+    def bind_review_page_click(self, page: Page):
+        print(f"点击了 {page.title}")
+
 
     def load_data(self):
         self.marks = DataService.load_marks_from_json(self.json_path)
@@ -101,6 +106,7 @@ class AppWindow(QWidget):
         self.right_stack.setObjectName("RightStack")
 
         self.page_review = WordReviewPage()
+        self.page_review.signal_clicked.connect(self.bind_review_page_click)
         self.page_stats = StatisticsPage()
         self.page_settings = SettingsPage()
         self.right_stack.addWidget(self.page_review)

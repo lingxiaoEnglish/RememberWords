@@ -6,12 +6,9 @@
 @Date    : 2026-05-29 16:50
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
-import json
-import os
-
 from PyQt6.QtNetwork import QNetworkAccessManager
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QScrollArea, QGridLayout
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from views.word_card import WordCard
 from models.mark_models import *
@@ -21,6 +18,9 @@ from typing_extensions import List
 
 # ... existing code ...
 class WordReviewPage(QWidget):
+
+    signal_clicked = pyqtSignal(Page)
+
     def __init__(self):
         super().__init__()
         self.network_manager = QNetworkAccessManager(self)
@@ -34,12 +34,16 @@ class WordReviewPage(QWidget):
 
             card = WordCard(page=item,
                             network_manager=self.network_manager)
+            card.signal_clicked.connect(self.signal_clicked.emit) # noqa
             row = index // COLUMNS
             col = index % COLUMNS
             self.grid_layout.addWidget(card, row, col)
 
         # 防止网格拉伸的兜底弹簧
         self.grid_layout.setRowStretch(self.grid_layout.rowCount(), 1)
+
+    # def click_word_card(self, page: Page):
+    #     print(f"click word card: {page.title}")
 
     def init_page_ui(self):
         main_layout = QVBoxLayout(self)
