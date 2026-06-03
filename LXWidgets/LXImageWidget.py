@@ -225,13 +225,31 @@ class LXImageWidget(QLabel):
 
         else:
             # --- 网络正式大图的平滑硬拉伸缩放 ---
-            physics_target_size = QSize(int(w_size.width() * dpr), int(w_size.height() * dpr))
-            self.scaled_pixmap = self.raw_pixmap.scaled(
-                physics_target_size,
-                Qt.AspectRatioMode.IgnoreAspectRatio,
+            # physics_target_size = QSize(int(w_size.width() * dpr), int(w_size.height() * dpr))
+            # self.scaled_pixmap = self.raw_pixmap.scaled(
+            #     physics_target_size,
+            #     Qt.AspectRatioMode.IgnoreAspectRatio,
+            #     Qt.TransformationMode.SmoothTransformation
+            # )
+            # # 注入屏幕真实的像素比例，让 paintEvent 绘制时按 1:1 像素对齐，完全杜绝发虚
+            # self.scaled_pixmap.setDevicePixelRatio(dpr)
+            # 1. 计算出组件当前的物理像素宽高
+            target_w = int(w_size.width() * dpr)
+            target_h = int(w_size.height() * dpr)
+
+            # 2. 采用 KeepAspectRatioByExpanding (等比缩放至刚好完全覆盖目标区域)
+            scaled_raw = self.raw_pixmap.scaled(
+                QSize(target_w, target_h),
+                Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                 Qt.TransformationMode.SmoothTransformation
             )
-            # 注入屏幕真实的像素比例，让 paintEvent 绘制时按 1:1 像素对齐，完全杜绝发虚
+
+            # 3. 从等比缩放后的图中央，安全裁剪出与目标区域完全一致的物理像素切片
+            crop_x = (scaled_raw.width() - target_w) // 2
+            crop_y = (scaled_raw.height() - target_h) // 2
+
+            # 4. 提取切片并注入屏幕真实的 DPR 像素比，确保绝对高清、杜绝虚化
+            self.scaled_pixmap = scaled_raw.copy(crop_x, crop_y, target_w, target_h)
             self.scaled_pixmap.setDevicePixelRatio(dpr)
 
     def paintEvent(self, event):
