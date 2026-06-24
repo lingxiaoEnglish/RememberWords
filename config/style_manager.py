@@ -30,3 +30,12 @@ class StyleManager:
         qss_str = load_qss(["word_card"])
         # print(qss_str)
         return qss_str
+
+    @staticmethod
+    def load_preview_page_css() -> str:
+        """
+        load preview page qt style sheet
+        """
+        qss_str = load_qss(["preview_page"])
+        # print(qss_str)
+        return qss_str

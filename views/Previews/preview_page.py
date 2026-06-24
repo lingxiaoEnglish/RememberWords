@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayo
 from models.page_models import Page
 import qtawesome as qta
 from LXWidgets.LXImageWidget import LXImageWidget
+from views.Previews.preview_header_widget import PreviewHeaderWidget
 
 class PreviewPage(QWidget):
 
@@ -76,7 +77,6 @@ class PreviewPage(QWidget):
         close_btn = QPushButton()
         close_btn.setObjectName("CloseBtn")
         close_btn.setIcon(qta.icon("mdi.close", color="#FFFFFF"))
-        close_btn.setFixedSize(26, 26)
         close_btn.clicked.connect(self.signal_close.emit)  # noqa
 
         # 通过右边距和顶边距微调按钮在阴影区里的位置 (可选，这里保留 10px 的系统边缘美感)
@@ -85,4 +85,8 @@ class PreviewPage(QWidget):
         # 将网格组合布局放入主布局
         main_layout.addLayout(cover_grid)
         main_layout.addStretch(1)
+
+        header = PreviewHeaderWidget()
+        main_layout.addWidget(header)
+        header.setFixedHeight(100)
 
