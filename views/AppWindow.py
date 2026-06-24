@@ -114,7 +114,7 @@ class AppWindow(QWidget):
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(12, 25, 12, 25)
 
-        logo_label = QLabel("Lentius")
+        logo_label = QLabel("Zhizhi")
         logo_label.setObjectName("LogoLabel")
         left_layout.addWidget(logo_label)
 

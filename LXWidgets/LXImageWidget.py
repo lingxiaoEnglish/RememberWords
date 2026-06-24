@@ -237,6 +237,9 @@ class LXImageWidget(QLabel):
             target_w = int(w_size.width() * dpr)
             target_h = int(w_size.height() * dpr)
 
+            # print(f"----target_w:{target_w}")
+            # print(f"----w_size.width():{w_size.width()}")
+
             # 2. 采用 KeepAspectRatioByExpanding (等比缩放至刚好完全覆盖目标区域)
             scaled_raw = self.raw_pixmap.scaled(
                 QSize(target_w, target_h),
