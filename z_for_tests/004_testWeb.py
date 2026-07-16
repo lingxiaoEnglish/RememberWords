@@ -288,7 +288,7 @@ class MainWindow(QMainWindow):
                     }}
                 }});
             }}
-
+            
             // 回退方案：在整页文本中搜索并高亮第一个匹配
             function fallbackHighlight(mark) {{
                 if (!mark.text) return;

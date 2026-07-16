@@ -2,16 +2,8 @@
 """
 @Project : RememberWords
 @File    : 005_testWeb
-@Author  : lingxiao
+@Author  : lingxiao.Dai
 @Date    : 2026-06-24 14:22
-@License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
-"""
-# -*- coding: utf-8 -*-
-"""
-@Project : RememberWords
-@File    : 004_testWeb
-@Author  : lingxiao
-@Date    : 2026-06-24 14:12
 @License : (C) Copyright 2026 Ling Xiao. All Rights Reserved.
 """
 

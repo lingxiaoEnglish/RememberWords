@@ -14,7 +14,9 @@ from views.AppWindow import AppWindow
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = AppWindow(json_path="webhighlights-backup-20260529-135026.json")
+    # path = "webhighlights-backup-20260529-135026.json"
+    path = "webhighlights-backup-20260629-163729.json"
+    window = AppWindow(json_path=path)
     window.show()
     sys.exit(app.exec())
 
